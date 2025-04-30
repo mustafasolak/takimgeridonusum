@@ -10,8 +10,7 @@ import {
   Toolbar,
   Button,
   Modal,
-  IconButton,
-  Link
+  IconButton
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Howl } from 'howler';
