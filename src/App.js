@@ -171,7 +171,7 @@ function App() {
     });
 
     return () => unsubscribe();
-  }, [isSoundOn]);
+  }, [isSoundOn, goalSound]);
 
   const TeamScore = ({ team, total, delta }) => {
     const teamConfig = {
