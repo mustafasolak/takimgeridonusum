@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Container,
@@ -28,6 +28,14 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
+import * as THREE from 'three';
+import CLOUDS from 'vanta/dist/vanta.clouds.min';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import DateRangeIcon from '@mui/icons-material/DateRange';
+import EventIcon from '@mui/icons-material/Event';
+import { useNavigate, Routes, Route } from 'react-router-dom';
+import Statistics from './components/Statistics';
 
 const modalStyle = {
   position: 'absolute',
@@ -60,29 +68,52 @@ function App() {
     return saved ? JSON.parse(saved) : true;
   });
 
-  const [goalSound] = useState(() => new Howl({
-    src: ['/goal.mp3'],
-    volume: isSoundOn ? 1 : 0,
-    preload: true,
-    html5: true
-  }));
+  const goalSoundRef = useRef(null);
+  useEffect(() => {
+    goalSoundRef.current = new Howl({
+      src: ['/goal.mp3'],
+      volume: isSoundOn ? 1 : 0,
+      preload: true,
+      html5: true
+    });
+  }, []);
+
+  useEffect(() => {
+    if (goalSoundRef.current) {
+      goalSoundRef.current.volume(isSoundOn ? 1 : 0);
+    }
+  }, [isSoundOn]);
+
+  const [vantaEffect, setVantaEffect] = useState(null);
+  const vantaRef = useRef(null);
+
+  const [viewType, setViewType] = useState('daily');
+
+  const navigate = useNavigate();
 
   const toggleSound = () => {
     const newState = !isSoundOn;
     setIsSoundOn(newState);
     localStorage.setItem('soundEnabled', JSON.stringify(newState));
-    goalSound.volume(newState ? 1 : 0);
-    
+    if (goalSoundRef.current) {
+      goalSoundRef.current.volume(newState ? 1 : 0);
+    }
     // Test sound when turning on
     if (newState) {
-      goalSound.play();
+      if (goalSoundRef.current) {
+        goalSoundRef.current.play();
+      }
     }
   };
 
   const handleOpenModal = (modalId) => {
     const menuItem = menuItems.find(item => item.id === modalId);
     if (menuItem && menuItem.type === 'link') {
+      if (menuItem.onClick) {
+        menuItem.onClick();
+      } else if (menuItem.url) {
       window.open(menuItem.url, '_blank');
+      }
     } else {
       setOpenModal(modalId);
     }
@@ -149,6 +180,13 @@ function App() {
       type: 'link',
       url: 'https://cevreonline.com/geri-donusum/',
       content: 'Daha fazla bilgi için tıklayın'
+    },
+    {
+      id: 'statistics',
+      title: 'İstatistikler',
+      icon: <BarChartIcon />,
+      type: 'link',
+      onClick: () => navigate('/statistics')
     }
   ];
 
@@ -162,7 +200,9 @@ function App() {
           
           if (newData.gs_delta === 1 || newData.fb_delta === 1 || newData.ts_delta === 1) {
             if (isSoundOn) {
-              goalSound.play();
+              if (goalSoundRef.current) {
+                goalSoundRef.current.play();
+              }
             }
           }
         }
@@ -170,7 +210,33 @@ function App() {
     });
 
     return () => unsubscribe();
-  }, [isSoundOn, goalSound]);
+  }, [isSoundOn]);
+
+  useEffect(() => {
+    if (!vantaEffect) {
+      setVantaEffect(
+        CLOUDS({
+          el: vantaRef.current,
+          THREE: THREE,
+          mouseControls: true,
+          touchControls: true,
+          gyroControls: false,
+          minHeight: 200.00,
+          minWidth: 200.00,
+          skyColor: 0x271841,
+          cloudColor: 0xde306c,
+          cloudShadowColor: 0x0,
+          sunColor: 0xffffff,
+          sunGlareColor: 0xde306c,
+          sunlightColor: 0xffffff,
+          speed: 1.00
+        })
+      );
+    }
+    return () => {
+      if (vantaEffect) vantaEffect.destroy();
+    };
+  }, [vantaEffect]);
 
   const TeamScore = ({ team, total, delta }) => {
     const teamConfig = {
@@ -179,52 +245,55 @@ function App() {
         color: '#F4C430',
         logo: '/gs-logo.png',
         gradient: 'linear-gradient(135deg, rgba(241, 196, 15, 0.9) 0%, rgba(230, 126, 34, 0.9) 100%)',
-        recyclingColor: '#FFA500'
+        borderColor: '#FFD700'
       },
       fb: {
         name: 'FENERBAHÇE',
         color: '#E30A17',
         logo: '/fb-logo.png',
         gradient: 'linear-gradient(135deg, rgba(52, 152, 219, 0.9) 0%, rgba(41, 128, 185, 0.9) 100%)',
-        recyclingColor: '#00BFFF'
+        borderColor: '#00BFFF'
       },
       ts: {
         name: 'BEŞİKTAŞ',
         color: '#E4002B',
         logo: '/bjk-logo.png',
         gradient: 'linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.9) 100%)',
-        recyclingColor: '#FF0000'
+        borderColor: '#FF0000'
       }
     };
 
     const config = teamConfig[team];
 
     return (
-      <Grid item xs={12} md={4}>
+      <Grid item xs={12} sm={6} md={4}>
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           whileHover={{ 
-            scale: 1.05,
-            transition: { duration: 0.3 }
+            scale: 1.02,
+            transition: { duration: 0.2 }
           }}
         >
           <Paper
             elevation={8}
             sx={{
-              p: 4,
-              m: 2,
+              p: { xs: 2, sm: 3, md: 4 },
+              m: { xs: 1, sm: 1.5, md: 2 },
               textAlign: 'center',
-              background: 'rgba(255, 255, 255, 0.85)',
-              color: '#2c3e50',
+              background: 'rgba(0, 0, 0, 0.7)',
+              color: '#FFFFFF',
               borderRadius: '20px',
               position: 'relative',
               overflow: 'hidden',
-              boxShadow: '0 10px 20px rgba(0,0,0,0.15)',
+              boxShadow: `0 0 20px ${config.borderColor}`,
+              border: `2px solid ${config.borderColor}`,
               backdropFilter: 'blur(5px)',
+              transition: 'all 0.3s ease',
               '&:hover': {
-                boxShadow: `0 0 20px ${config.recyclingColor}, 0 0 40px ${config.recyclingColor}`,
+                boxShadow: `0 0 30px ${config.borderColor}`,
+                transform: 'translateY(-5px)',
                 '&::before': {
                   content: '""',
                   position: 'absolute',
@@ -233,12 +302,9 @@ function App() {
                   right: 0,
                   bottom: 0,
                   borderRadius: '20px',
-                  padding: '2px',
-                  background: `linear-gradient(45deg, ${config.recyclingColor}, ${config.color})`,
-                  WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                  WebkitMaskComposite: 'xor',
-                  maskComposite: 'exclude',
-                  animation: 'glow 2s linear infinite',
+                  background: config.gradient,
+                  opacity: 0.1,
+                  transition: 'opacity 0.3s ease'
                 }
               }
             }}
@@ -247,13 +313,13 @@ function App() {
               {`
                 @keyframes glow {
                   0% {
-                    box-shadow: 0 0 20px ${config.recyclingColor}, 0 0 40px ${config.recyclingColor};
+                    box-shadow: 0 0 20px ${config.borderColor}, 0 0 40px ${config.borderColor};
                   }
                   50% {
-                    box-shadow: 0 0 30px ${config.recyclingColor}, 0 0 60px ${config.recyclingColor};
+                    box-shadow: 0 0 30px ${config.borderColor}, 0 0 60px ${config.borderColor};
                   }
                   100% {
-                    box-shadow: 0 0 20px ${config.recyclingColor}, 0 0 40px ${config.recyclingColor};
+                    box-shadow: 0 0 20px ${config.borderColor}, 0 0 40px ${config.borderColor};
                   }
                 }
               `}
@@ -285,11 +351,11 @@ function App() {
                   src={config.logo}
                   alt={`${config.name} Logo`}
                   sx={{
-                    width: '80px',
-                    height: '80px',
+                    width: '100px',
+                    height: '100px',
                     objectFit: 'contain',
                     mb: 2,
-                    filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))'
+                    filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))'
                   }}
                 />
               </motion.div>
@@ -297,8 +363,10 @@ function App() {
                 variant="h5"
                 sx={{
                   fontWeight: 'bold',
-                  color: '#34495e',
-                  mb: 3
+                  color: '#FFFFFF',
+                  mb: 3,
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px'
                 }}
               >
                 {config.name}
@@ -353,7 +421,7 @@ function App() {
                       variant="h2"
                       sx={{
                         fontWeight: 'bold',
-                        color: '#2c3e50',
+                        color: '#FFFFFF',
                         fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem' }
                       }}
                     >
@@ -362,7 +430,7 @@ function App() {
                     <Typography
                       variant="subtitle1"
                       sx={{
-                        color: '#7f8c8d',
+                        color: '#FFFFFF',
                         mt: 1
                       }}
                     >
@@ -380,10 +448,10 @@ function App() {
                   transition={{ type: "spring", stiffness: 200, damping: 10 }}
                 >
                   <Chip
-                    label={`+${delta} Yeni Şişe!`}
+                    label={`+${delta} GOL!`}
                     sx={{
-                      bgcolor: '#2ecc71',
-                      color: 'white',
+                      bgcolor: config.borderColor,
+                      color: '#FFFFFF',
                       fontWeight: 'bold',
                       fontSize: '1rem',
                       p: 2,
@@ -403,44 +471,134 @@ function App() {
 
   return (
     <Box
+      ref={vantaRef}
       sx={{
         minHeight: '100vh',
-        background: `linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('/bg.png')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
+        width: '100%',
         position: 'relative',
         overflow: 'hidden',
-        pt: 4,
-        pb: 8
+        paddingTop: '64px'
       }}
     >
-      <AppBar position="fixed" sx={{ 
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        backdropFilter: 'blur(10px)',
-        zIndex: 1000,
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-      }}>
+      <AppBar 
+        position="fixed" 
+        sx={{ 
+          background: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(10px)',
+          borderBottom: '2px solid #FFD700',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
+          zIndex: 1100
+        }}
+      >
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: '#2c3e50' }}>
-            Geri Dönüşüm Taraftar Sitesi Projesi
-          </Typography>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            flexGrow: 1
+          }}>
+            <RecyclingIcon sx={{ 
+              color: '#4CAF50',
+              mr: 1.5,
+              fontSize: { xs: '1.8rem', sm: '2rem', md: '2.2rem' },
+              animation: 'spin 4s linear infinite',
+              '@keyframes spin': {
+                '0%': {
+                  transform: 'rotate(0deg)',
+                },
+                '100%': {
+                  transform: 'rotate(360deg)',
+                },
+              },
+              filter: 'drop-shadow(0 0 5px #4CAF50)'
+            }} />
+            <Typography 
+              variant="h6" 
+              component="div" 
+              onClick={() => navigate('/')}
+              sx={{ 
+                color: '#FFFFFF',
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+                fontSize: { xs: '0.9rem', sm: '1.1rem', md: '1.2rem' },
+                cursor: 'pointer',
+                '&:hover': {
+                  color: '#FFD700',
+                  textShadow: '0 0 10px rgba(255, 215, 0, 0.5)',
+                },
+                transition: 'all 0.3s ease'
+              }}
+            >
+              TAKIM GERİ DÖNÜŞÜM YARIŞMASI
+            </Typography>
+          </Box>
           <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2 }}>
-            <Button color="inherit" onClick={() => handleOpenModal('recycling-info')} sx={{ color: '#2c3e50' }}>
-              <RecyclingIcon sx={{ mr: 1, color: '#2c3e50' }} />
+            <Button 
+              color="inherit" 
+              onClick={() => handleOpenModal('recycling-info')} 
+              sx={{ 
+                color: '#FFFFFF',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                  color: '#FFD700'
+                }
+              }}
+            >
+              <RecyclingIcon sx={{ mr: 1, color: '#FFD700' }} />
               Geri Dönüşüm Nedir?
             </Button>
-            <Button color="inherit" onClick={() => handleOpenModal('how-to-recycle')} sx={{ color: '#2c3e50' }}>
-              <EmojiNatureIcon sx={{ mr: 1, color: '#2c3e50' }} />
+            <Button 
+              color="inherit" 
+              onClick={() => handleOpenModal('how-to-recycle')} 
+              sx={{ 
+                color: '#FFFFFF',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                  color: '#FFD700'
+                }
+              }}
+            >
+              <EmojiNatureIcon sx={{ mr: 1, color: '#FFD700' }} />
               Doğaya Faydaları
             </Button>
-            <Button color="inherit" onClick={() => handleOpenModal('external-resources')} sx={{ color: '#2c3e50' }}>
-              <InfoIcon sx={{ mr: 1, color: '#2c3e50' }} />
+            <Button 
+              color="inherit" 
+              onClick={() => handleOpenModal('external-resources')} 
+              sx={{ 
+                color: '#FFFFFF',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                  color: '#FFD700'
+                }
+              }}
+            >
+              <InfoIcon sx={{ mr: 1, color: '#FFD700' }} />
               Bilgi
+            </Button>
+            <Button 
+              color="inherit" 
+              onClick={() => handleOpenModal('statistics')} 
+              sx={{ 
+                color: '#FFFFFF',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                  color: '#FFD700'
+                }
+              }}
+            >
+              <BarChartIcon sx={{ mr: 1, color: '#FFD700' }} />
+              İstatistikler
             </Button>
             <IconButton 
               onClick={toggleSound} 
-              sx={{ color: '#2c3e50' }}
+              sx={{ 
+                color: '#FFFFFF',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                  color: '#FFD700'
+                }
+              }}
               title={isSoundOn ? "Sesi Kapat" : "Sesi Aç"}
             >
               {isSoundOn ? <VolumeUpIcon /> : <VolumeOffIcon />}
@@ -450,7 +608,14 @@ function App() {
             color="inherit"
             edge="end"
             onClick={() => setMobileMenuOpen(true)}
-            sx={{ display: { xs: 'flex', md: 'none' }, color: '#2c3e50' }}
+            sx={{ 
+              display: { xs: 'flex', md: 'none' },
+              color: '#FFFFFF',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                color: '#FFD700'
+              }
+            }}
           >
             <MenuIcon />
           </IconButton>
@@ -475,7 +640,16 @@ function App() {
             <ListItem 
               button 
               key={item.id}
-              onClick={() => item.type === 'link' ? window.open(item.url, '_blank') : handleOpenModal(item.id)}
+              onClick={() => {
+                if (item.onClick) {
+                  item.onClick();
+                } else if (item.type === 'link' && item.url) {
+                  window.open(item.url, '_blank');
+                } else {
+                  handleOpenModal(item.id);
+                }
+                setMobileMenuOpen(false);
+              }}
               sx={{
                 '&:hover': {
                   backgroundColor: 'rgba(0, 0, 0, 0.04)'
@@ -507,125 +681,93 @@ function App() {
 
       <Toolbar />
 
-      {menuItems.filter(item => item.type !== 'link').map((item) => (
-        <Modal
-          key={item.id}
-          open={openModal === item.id}
-          onClose={handleCloseModal}
-          aria-labelledby={`modal-${item.id}`}
-        >
-          <Box sx={modalStyle}>
-            <IconButton
-              onClick={handleCloseModal}
-              sx={{
-                position: 'absolute',
-                right: 8,
-                top: 8,
-                color: 'grey.500'
-              }}
-            >
-              <CloseIcon />
-            </IconButton>
-            {item.content}
-          </Box>
-        </Modal>
-      ))}
+      <Routes>
+        <Route path="/" element={
+          <>
+            <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+              <Grid 
+                container 
+                spacing={2} 
+                justifyContent="center"
+                sx={{ 
+                  mt: { xs: 1, md: 2 },
+                  mb: { xs: 2, md: 4 }
+                }}
+              >
+                <TeamScore team="gs" total={scores.gs_total} delta={scores.gs_delta} />
+                <TeamScore team="fb" total={scores.fb_total} delta={scores.fb_delta} />
+                <TeamScore team="ts" total={scores.ts_total} delta={scores.ts_delta} />
+              </Grid>
 
-      {/* Decorative Overlay */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          opacity: 0.1,
-          zIndex: 0,
-          background: `
-            radial-gradient(circle at 10% 20%, rgba(46, 204, 113, 0.6) 0%, transparent 35%),
-            radial-gradient(circle at 90% 30%, rgba(52, 152, 219, 0.6) 0%, transparent 35%),
-            radial-gradient(circle at 50% 80%, rgba(241, 196, 15, 0.6) 0%, transparent 35%)
-          `
-        }}
-      />
+              {menuItems.filter(item => !item.type).map((item) => (
+                <Modal
+                  key={item.id}
+                  open={openModal === item.id}
+                  onClose={handleCloseModal}
+                  aria-labelledby={`modal-${item.id}`}
+                >
+                  <Box sx={modalStyle}>
+                    <IconButton
+                      onClick={handleCloseModal}
+                      sx={{
+                        position: 'absolute',
+                        right: 8,
+                        top: 8,
+                        color: 'grey.500'
+                      }}
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                    {item.content}
+                  </Box>
+                </Modal>
+              ))}
 
-      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-
-
-        <Grid container spacing={3} justifyContent="center">
-          <TeamScore team="gs" total={scores.gs_total} delta={scores.gs_delta} />
-          <TeamScore team="fb" total={scores.fb_total} delta={scores.fb_delta} />
-          <TeamScore team="ts" total={scores.ts_total} delta={scores.ts_delta} />
-        </Grid>
-
-        <Box
-          sx={{
-            textAlign: 'center',
-            mb: 6,
-            background: 'rgba(255, 255, 255, 0.85)',
-            borderRadius: '20px',
-            p: 3,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
-          }}
-        >
-          <Typography
-            variant="h2"
-            component="h1"
-            sx={{
-              color: '#2c3e50',
-              fontWeight: 'bold',
-              mb: 2,
-              fontSize: { xs: '2rem', sm: '3rem' }
-            }}
-          >
-            GERİ DÖNÜŞÜM YARIŞMASI
-          </Typography>
-          <Typography
-            variant="h5"
-            sx={{
-              color: '#27ae60',
-              fontWeight: 'medium',
-              mb: 1
-            }}
-          >
-            Takımını Destekle, Çevreyi Koru!
-          </Typography>
-          <Typography
-            variant="body1"
-            sx={{
-              color: '#7f8c8d',
-              maxWidth: '600px',
-              mx: 'auto',
-              px: 2
-            }}
-          >
-            Her atılan şişe, daha temiz bir gelecek için atılan bir adımdır.
-            Haydi sen de takımını destekleyerek çevreyi koru!
-          </Typography>
-        </Box>
-
-        <Box
-          sx={{
-            textAlign: 'center',
-            mt: 6,
-            background: 'rgba(255, 255, 255, 0.85)',
-            borderRadius: '15px',
-            p: 2,
-            maxWidth: '500px',
-            mx: 'auto',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
-          }}
-        >
-          <Typography
-            variant="body2"
-            sx={{
-              color: '#95a5a6'
-            }}
-          >
-            Bu proje, geri dönüşümü eğlenceli hale getirerek çevre bilincini artırmayı amaçlamaktadır.
-          </Typography>
-        </Box>
-      </Container>
+              <Box
+                sx={{
+                  textAlign: 'center',
+                  mt: { xs: 2, md: 4 },
+                  background: 'rgba(0, 0, 0, 0.7)',
+                  borderRadius: '15px',
+                  p: { xs: 2, sm: 2.5, md: 3 },
+                  maxWidth: '500px',
+                  mx: 'auto',
+                  boxShadow: '0 0 20px rgba(255, 215, 0, 0.3)',
+                  border: '1px solid #FFD700'
+                }}
+              >
+                <Typography
+                  variant="h5"
+                  sx={{
+                    color: '#FFD700',
+                    fontWeight: 'bold',
+                    mb: 1.2,
+                    textTransform: 'uppercase',
+                    fontSize: { xs: '1.0rem', sm: '1.2rem', md: '1.3rem' },
+                    letterSpacing: '1px'
+                  }}
+                >
+                  TAKIMINI DESTEKLE, ŞAMPİYON OL!
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: '#FFFFFF',
+                    maxWidth: '400px',
+                    mx: 'auto',
+                    fontSize: { xs: '0.7rem', sm: '0.9rem' },
+                    opacity: 0.9
+                  }}
+                >
+                  Her atılan şişe, takımının puan hanesine yazılır.
+                  Haydi sen de takımını destekleyerek şampiyonluğa koş!
+                </Typography>
+              </Box>
+            </Container>
+          </>
+        } />
+        <Route path="/statistics" element={<Statistics />} />
+      </Routes>
     </Box>
   );
 }
