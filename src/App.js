@@ -423,7 +423,7 @@ function App() {
       }}>
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: '#2c3e50' }}>
-            Geri Dönüşüm Taraftar Sitesi
+            Geri Dönüşüm Taraftar Sitesi Projesi
           </Typography>
           <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 2 }}>
             <Button color="inherit" onClick={() => handleOpenModal('recycling-info')} sx={{ color: '#2c3e50' }}>
