@@ -28,14 +28,11 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
-import * as THREE from 'three';
-import CLOUDS from 'vanta/dist/vanta.clouds.min';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import BarChartIcon from '@mui/icons-material/BarChart';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import DateRangeIcon from '@mui/icons-material/DateRange';
-import EventIcon from '@mui/icons-material/Event';
 import { useNavigate, Routes, Route } from 'react-router-dom';
 import Statistics from './components/Statistics';
+import Admin from './components/Admin';
 
 const modalStyle = {
   position: 'absolute',
@@ -83,11 +80,6 @@ function App() {
       goalSoundRef.current.volume(isSoundOn ? 1 : 0);
     }
   }, [isSoundOn]);
-
-  const [vantaEffect, setVantaEffect] = useState(null);
-  const vantaRef = useRef(null);
-
-  const [viewType, setViewType] = useState('daily');
 
   const navigate = useNavigate();
 
@@ -187,6 +179,13 @@ function App() {
       icon: <BarChartIcon />,
       type: 'link',
       onClick: () => navigate('/statistics')
+    },
+    {
+      id: 'admin',
+      title: 'Admin Paneli',
+      icon: <AdminPanelSettingsIcon />,
+      type: 'link',
+      onClick: () => navigate('/admin')
     }
   ];
 
@@ -212,31 +211,6 @@ function App() {
     return () => unsubscribe();
   }, [isSoundOn]);
 
-  useEffect(() => {
-    if (!vantaEffect) {
-      setVantaEffect(
-        CLOUDS({
-          el: vantaRef.current,
-          THREE: THREE,
-          mouseControls: true,
-          touchControls: true,
-          gyroControls: false,
-          minHeight: 200.00,
-          minWidth: 200.00,
-          skyColor: 0x271841,
-          cloudColor: 0xde306c,
-          cloudShadowColor: 0x0,
-          sunColor: 0xffffff,
-          sunGlareColor: 0xde306c,
-          sunlightColor: 0xffffff,
-          speed: 1.00
-        })
-      );
-    }
-    return () => {
-      if (vantaEffect) vantaEffect.destroy();
-    };
-  }, [vantaEffect]);
 
   const TeamScore = ({ team, total, delta }) => {
     const teamConfig = {
@@ -471,13 +445,14 @@ function App() {
 
   return (
     <Box
-      ref={vantaRef}
       sx={{
         minHeight: '100vh',
         width: '100%',
         position: 'relative',
         overflow: 'hidden',
-        paddingTop: '64px'
+        paddingTop: '64px',
+        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+        backgroundAttachment: 'fixed'
       }}
     >
       <AppBar 
@@ -576,10 +551,10 @@ function App() {
               <InfoIcon sx={{ mr: 1, color: '#FFD700' }} />
               Bilgi
             </Button>
-            <Button 
-              color="inherit" 
-              onClick={() => handleOpenModal('statistics')} 
-              sx={{ 
+            <Button
+              color="inherit"
+              onClick={() => handleOpenModal('statistics')}
+              sx={{
                 color: '#FFFFFF',
                 '&:hover': {
                   backgroundColor: 'rgba(255, 215, 0, 0.1)',
@@ -589,6 +564,20 @@ function App() {
             >
               <BarChartIcon sx={{ mr: 1, color: '#FFD700' }} />
               İstatistikler
+            </Button>
+            <Button
+              color="inherit"
+              onClick={() => handleOpenModal('admin')}
+              sx={{
+                color: '#FFFFFF',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                  color: '#FFD700'
+                }
+              }}
+            >
+              <AdminPanelSettingsIcon sx={{ mr: 1, color: '#FFD700' }} />
+              Admin
             </Button>
             <IconButton 
               onClick={toggleSound} 
@@ -767,6 +756,7 @@ function App() {
           </>
         } />
         <Route path="/statistics" element={<Statistics />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </Box>
   );
