@@ -212,231 +212,282 @@ function App() {
   }, [isSoundOn]);
 
 
-  const TeamScore = ({ team, total, delta }) => {
+  const TeamScore = ({ team, total, delta, rank, maxScore }) => {
     const teamConfig = {
       gs: {
         name: 'GALATASARAY',
-        color: '#F4C430',
+        shortName: 'GS',
+        color: '#FFD700',
         logo: '/gs-logo.png',
-        gradient: 'linear-gradient(135deg, rgba(241, 196, 15, 0.9) 0%, rgba(230, 126, 34, 0.9) 100%)',
-        borderColor: '#FFD700'
+        gradient: 'linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF6B35 100%)',
+        glowColor: 'rgba(255, 215, 0, 0.6)',
+        borderGradient: 'linear-gradient(135deg, #FFD700 0%, #FF6B35 100%)',
+        cardBg: 'linear-gradient(145deg, rgba(255, 215, 0, 0.08), rgba(255, 107, 53, 0.05))'
       },
       fb: {
         name: 'FENERBAHÇE',
-        color: '#E30A17',
+        shortName: 'FB',
+        color: '#FFE900',
         logo: '/fb-logo.png',
-        gradient: 'linear-gradient(135deg, rgba(52, 152, 219, 0.9) 0%, rgba(41, 128, 185, 0.9) 100%)',
-        borderColor: '#00BFFF'
+        gradient: 'linear-gradient(135deg, #FFE900 0%, #004D98 50%, #00B4FF 100%)',
+        glowColor: 'rgba(0, 180, 255, 0.6)',
+        borderGradient: 'linear-gradient(135deg, #FFE900 0%, #00B4FF 100%)',
+        cardBg: 'linear-gradient(145deg, rgba(255, 233, 0, 0.08), rgba(0, 77, 152, 0.08))'
       },
       ts: {
         name: 'BEŞİKTAŞ',
-        color: '#E4002B',
+        shortName: 'BJK',
+        color: '#F0F0F0',
         logo: '/bjk-logo.png',
-        gradient: 'linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.9) 100%)',
-        borderColor: '#FF0000'
+        gradient: 'linear-gradient(135deg, #FFFFFF 0%, #B0B0B0 50%, #1A1A1A 100%)',
+        glowColor: 'rgba(240, 240, 240, 0.6)',
+        borderGradient: 'linear-gradient(135deg, #FFFFFF 0%, #666666 100%)',
+        cardBg: 'linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(100, 100, 100, 0.08))'
       }
     };
 
     const config = teamConfig[team];
+    const percentage = maxScore > 0 ? (total / maxScore) * 100 : 0;
+
+    const medals = ['🥇', '🥈', '🥉'];
+    const isWinner = rank === 1;
 
     return (
-      <Grid item xs={12} sm={6} md={4}>
+      <Grid item xs={12} md={4}>
         <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          whileHover={{ 
-            scale: 1.02,
-            transition: { duration: 0.2 }
+          initial={{ opacity: 0, scale: 0.8, y: 50 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{
+            duration: 0.6,
+            delay: rank * 0.1,
+            type: "spring",
+            stiffness: 100
+          }}
+          whileHover={{
+            scale: 1.05,
+            transition: { duration: 0.3 }
           }}
         >
           <Paper
-            elevation={8}
+            elevation={isWinner ? 24 : 12}
             sx={{
-              p: { xs: 2, sm: 3, md: 4 },
-              m: { xs: 1, sm: 1.5, md: 2 },
+              p: { xs: 3, sm: 4 },
+              m: { xs: 1, sm: 2 },
               textAlign: 'center',
-              background: 'rgba(0, 0, 0, 0.7)',
-              color: '#FFFFFF',
-              borderRadius: '20px',
+              background: `${config.cardBg}, linear-gradient(145deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)`,
+              backdropFilter: 'blur(30px) saturate(200%)',
+              border: `3px solid transparent`,
+              borderRadius: '30px',
               position: 'relative',
-              overflow: 'hidden',
-              boxShadow: `0 0 20px ${config.borderColor}`,
-              border: `2px solid ${config.borderColor}`,
-              backdropFilter: 'blur(5px)',
-              transition: 'all 0.3s ease',
+              overflow: 'visible',
+              transform: isWinner ? 'scale(1.08)' : 'scale(1)',
+              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              boxShadow: isWinner
+                ? `0 20px 60px ${config.glowColor}, 0 0 50px ${config.glowColor}, inset 0 0 60px ${config.glowColor}33`
+                : `0 10px 40px rgba(0,0,0,0.4), inset 0 0 30px ${config.glowColor}22`,
               '&:hover': {
-                boxShadow: `0 0 30px ${config.borderColor}`,
-                transform: 'translateY(-5px)',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  borderRadius: '20px',
-                  background: config.gradient,
-                  opacity: 0.1,
-                  transition: 'opacity 0.3s ease'
-                }
+                transform: isWinner ? 'scale(1.12)' : 'scale(1.08)',
+                boxShadow: `0 30px 90px ${config.glowColor}, 0 0 60px ${config.glowColor}, inset 0 0 80px ${config.glowColor}44`,
+                border: `3px solid ${config.color}88`,
+              },
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: -3,
+                left: -3,
+                right: -3,
+                bottom: -3,
+                background: config.borderGradient,
+                borderRadius: '30px',
+                zIndex: -1,
+                opacity: isWinner ? 0.6 : 0.4,
+                filter: 'blur(15px)',
+                transition: 'opacity 0.4s'
+              },
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: config.gradient,
+                borderRadius: '30px',
+                zIndex: -2,
+                opacity: 0.05,
+                filter: 'blur(50px)'
               }
             }}
           >
-            <style>
-              {`
-                @keyframes glow {
-                  0% {
-                    box-shadow: 0 0 20px ${config.borderColor}, 0 0 40px ${config.borderColor};
-                  }
-                  50% {
-                    box-shadow: 0 0 30px ${config.borderColor}, 0 0 60px ${config.borderColor};
-                  }
-                  100% {
-                    box-shadow: 0 0 20px ${config.borderColor}, 0 0 40px ${config.borderColor};
-                  }
-                }
-              `}
-            </style>
+            {/* Rank Badge */}
             <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: '100%' }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ delay: 0.4, type: "spring" }}
             >
               <Box
                 sx={{
                   position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: '8px',
-                  background: config.gradient
+                  top: -15,
+                  right: -15,
+                  width: 70,
+                  height: 70,
+                  borderRadius: '50%',
+                  background: config.gradient,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '2.5rem',
+                  fontWeight: 'bold',
+                  boxShadow: `0 10px 30px ${config.glowColor}`,
+                  border: '4px solid rgba(255,255,255,0.2)',
+                  zIndex: 10
+                }}
+              >
+                {medals[rank - 1] || rank}
+              </Box>
+            </motion.div>
+
+            {/* Logo */}
+            <motion.div
+              initial={{ scale: 0, rotateY: 180 }}
+              animate={{ scale: 1, rotateY: 0 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 150 }}
+            >
+              <Box
+                component="img"
+                src={config.logo}
+                alt={`${config.name} Logo`}
+                sx={{
+                  width: isWinner ? '140px' : '110px',
+                  height: isWinner ? '140px' : '110px',
+                  objectFit: 'contain',
+                  mb: 2,
+                  filter: `drop-shadow(0 0 20px ${config.glowColor})`,
+                  transition: 'all 0.3s ease'
                 }}
               />
             </motion.div>
-            <Box sx={{ position: 'relative', zIndex: 2 }}>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 200, damping: 10, delay: 0.3 }}
+
+            {/* Team Name */}
+            <Typography
+              variant={isWinner ? "h4" : "h5"}
+              sx={{
+                fontWeight: 900,
+                background: config.gradient,
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                mb: 2,
+                textTransform: 'uppercase',
+                letterSpacing: '3px',
+                textShadow: `0 0 30px ${config.glowColor}`
+              }}
+            >
+              {config.shortName}
+            </Typography>
+
+            {/* Score Display */}
+            <Box sx={{ mb: 3 }}>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={total}
+                  initial={{ scale: 0.5, opacity: 0, rotateX: 90 }}
+                  animate={{ scale: 1, opacity: 1, rotateX: 0 }}
+                  exit={{ scale: 0.5, opacity: 0, rotateX: -90 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                >
+                  <Typography
+                    variant="h1"
+                    sx={{
+                      fontWeight: 900,
+                      fontSize: isWinner ? '5rem' : '4rem',
+                      color: config.color,
+                      textShadow: `0 0 40px ${config.glowColor}, 0 0 80px ${config.glowColor}`,
+                      lineHeight: 1
+                    }}
+                  >
+                    {total}
+                  </Typography>
+                </motion.div>
+              </AnimatePresence>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'rgba(255,255,255,0.6)',
+                  fontSize: '0.9rem',
+                  letterSpacing: '2px',
+                  textTransform: 'uppercase'
+                }}
               >
-                <Box
-                  component="img"
-                  src={config.logo}
-                  alt={`${config.name} Logo`}
+                Şişe
+              </Typography>
+            </Box>
+
+            {/* Progress Bar */}
+            <Box sx={{ width: '100%', mb: 2 }}>
+              <Box
+                sx={{
+                  height: '12px',
+                  borderRadius: '20px',
+                  background: 'rgba(255,255,255,0.1)',
+                  overflow: 'hidden',
+                  position: 'relative'
+                }}
+              >
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${percentage}%` }}
+                  transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }}
+                  style={{
+                    height: '100%',
+                    background: config.gradient,
+                    boxShadow: `0 0 20px ${config.glowColor}`,
+                    borderRadius: '20px'
+                  }}
+                />
+              </Box>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: config.color,
+                  fontSize: '0.75rem',
+                  mt: 0.5,
+                  display: 'block'
+                }}
+              >
+                {percentage.toFixed(1)}% lider oranı
+              </Typography>
+            </Box>
+
+            {/* Delta Badge */}
+            {delta > 0 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                <Chip
+                  icon={<RecyclingIcon />}
+                  label={`+${delta} YENİ!`}
                   sx={{
-                    width: '100px',
-                    height: '100px',
-                    objectFit: 'contain',
-                    mb: 2,
-                    filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))'
+                    background: config.gradient,
+                    color: team === 'ts' ? '#000' : '#fff',
+                    fontWeight: 900,
+                    fontSize: '0.9rem',
+                    px: 1,
+                    py: 2.5,
+                    boxShadow: `0 5px 20px ${config.glowColor}`,
+                    animation: 'pulse 2s infinite',
+                    '@keyframes pulse': {
+                      '0%, 100%': { transform: 'scale(1)' },
+                      '50%': { transform: 'scale(1.05)' }
+                    }
                   }}
                 />
               </motion.div>
-              <Typography
-                variant="h5"
-                sx={{
-                  fontWeight: 'bold',
-                  color: '#FFFFFF',
-                  mb: 3,
-                  textTransform: 'uppercase',
-                  letterSpacing: '1px'
-                }}
-              >
-                {config.name}
-              </Typography>
-              
-              <Box
-                sx={{
-                  position: 'relative',
-                  mb: 3,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center'
-                }}
-              >
-                <motion.div
-                  initial={{ rotate: -180, scale: 0 }}
-                  animate={{ rotate: 0, scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 10, delay: 0.4 }}
-                >
-                  <motion.div
-                    key={total}
-                    animate={{ rotate: 360 }}
-                    transition={{ 
-                      duration: 1,
-                      ease: "easeInOut",
-                      repeat: 1,
-                      repeatType: "reverse"
-                    }}
-                  >
-                    <Box
-                      component="img"
-                      src="/bottle-icon.png"
-                      alt="Plastic Bottle"
-                      sx={{
-                        width: '40px',
-                        height: '40px',
-                        mb: 2,
-                        opacity: 0.7
-                      }}
-                    />
-                  </motion.div>
-                </motion.div>
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={total}
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 10 }}
-                  >
-                    <Typography
-                      variant="h2"
-                      sx={{
-                        fontWeight: 'bold',
-                        color: '#FFFFFF',
-                        fontSize: { xs: '2.5rem', sm: '3.5rem', md: '4rem' }
-                      }}
-                    >
-                      {total}
-                    </Typography>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{
-                        color: '#FFFFFF',
-                        mt: 1
-                      }}
-                    >
-                      Geri Dönüştürülen Şişe
-                    </Typography>
-                  </motion.div>
-                </AnimatePresence>
-              </Box>
-
-              {delta > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20, scale: 0.5 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 20, scale: 0.5 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 10 }}
-                >
-                  <Chip
-                    label={`+${delta} GOL!`}
-                    sx={{
-                      bgcolor: config.borderColor,
-                      color: '#FFFFFF',
-                      fontWeight: 'bold',
-                      fontSize: '1rem',
-                      p: 2,
-                      '& .MuiChip-label': {
-                        px: 2
-                      }
-                    }}
-                  />
-                </motion.div>
-              )}
-            </Box>
+            )}
           </Paper>
         </motion.div>
       </Grid>
@@ -451,17 +502,27 @@ function App() {
         position: 'relative',
         overflow: 'hidden',
         paddingTop: '64px',
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-        backgroundAttachment: 'fixed'
+        background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)',
+        backgroundAttachment: 'fixed',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(252, 70, 107, 0.1) 0%, transparent 50%)',
+          pointerEvents: 'none'
+        }
       }}
     >
-      <AppBar 
-        position="fixed" 
-        sx={{ 
-          background: 'rgba(0, 0, 0, 0.8)',
-          backdropFilter: 'blur(10px)',
-          borderBottom: '2px solid #FFD700',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
+      <AppBar
+        position="fixed"
+        sx={{
+          background: 'linear-gradient(135deg, rgba(15, 12, 41, 0.85) 0%, rgba(48, 43, 99, 0.85) 100%)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          borderBottom: '2px solid rgba(255, 215, 0, 0.3)',
+          boxShadow: '0 4px 30px rgba(0,0,0,0.5), 0 0 20px rgba(255, 215, 0, 0.1)',
           zIndex: 1100
         }}
       >
@@ -673,19 +734,83 @@ function App() {
       <Routes>
         <Route path="/" element={
           <>
-            <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-              <Grid 
-                container 
-                spacing={2} 
+            <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1 }}>
+              {/* Hero Section */}
+              <Box sx={{ textAlign: 'center', mb: 6, mt: 4 }}>
+                <motion.div
+                  initial={{ opacity: 0, y: -30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8 }}
+                >
+                  <Typography
+                    variant="h2"
+                    sx={{
+                      fontWeight: 900,
+                      background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 30%, #FF6B35 60%, #C74B50 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      mb: 2,
+                      fontSize: { xs: '2rem', sm: '3rem', md: '3.5rem' },
+                      letterSpacing: '2px',
+                      filter: 'drop-shadow(0 0 30px rgba(255, 215, 0, 0.4))',
+                      animation: 'glow 3s ease-in-out infinite',
+                      '@keyframes glow': {
+                        '0%, 100%': {
+                          filter: 'drop-shadow(0 0 30px rgba(255, 215, 0, 0.4))'
+                        },
+                        '50%': {
+                          filter: 'drop-shadow(0 0 50px rgba(255, 165, 0, 0.6))'
+                        }
+                      }
+                    }}
+                  >
+                    🏆 GERİ DÖNÜŞÜM LİDERLİĞİ 🏆
+                  </Typography>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      color: 'rgba(255,255,255,0.85)',
+                      fontSize: { xs: '0.9rem', sm: '1.1rem' },
+                      maxWidth: '600px',
+                      mx: 'auto',
+                      letterSpacing: '1px',
+                      textShadow: '0 2px 10px rgba(0,0,0,0.5)'
+                    }}
+                  >
+                    <Box component="span" sx={{ color: '#FFD700' }}>Takımını Destekle</Box> • <Box component="span" sx={{ color: '#4CAF50' }}>Dünyayı Kurtar</Box> • <Box component="span" sx={{ color: '#00B4FF' }}>Şampiyonluğu Kazan</Box>
+                  </Typography>
+                </motion.div>
+              </Box>
+
+              <Grid
+                container
+                spacing={3}
                 justifyContent="center"
-                sx={{ 
-                  mt: { xs: 1, md: 2 },
-                  mb: { xs: 2, md: 4 }
-                }}
+                alignItems="stretch"
+                sx={{ mb: 6 }}
               >
-                <TeamScore team="gs" total={scores.gs_total} delta={scores.gs_delta} />
-                <TeamScore team="fb" total={scores.fb_total} delta={scores.fb_delta} />
-                <TeamScore team="ts" total={scores.ts_total} delta={scores.ts_delta} />
+                {(() => {
+                  const teams = [
+                    { team: 'gs', total: scores.gs_total, delta: scores.gs_delta },
+                    { team: 'fb', total: scores.fb_total, delta: scores.fb_delta },
+                    { team: 'ts', total: scores.ts_total, delta: scores.ts_delta }
+                  ];
+
+                  const sortedTeams = [...teams].sort((a, b) => b.total - a.total);
+                  const maxScore = Math.max(...teams.map(t => t.total));
+
+                  return sortedTeams.map((teamData, index) => (
+                    <TeamScore
+                      key={teamData.team}
+                      team={teamData.team}
+                      total={teamData.total}
+                      delta={teamData.delta}
+                      rank={index + 1}
+                      maxScore={maxScore}
+                    />
+                  ));
+                })()}
               </Grid>
 
               {menuItems.filter(item => !item.type).map((item) => (
@@ -712,46 +837,94 @@ function App() {
                 </Modal>
               ))}
 
-              <Box
-                sx={{
-                  textAlign: 'center',
-                  mt: { xs: 2, md: 4 },
-                  background: 'rgba(0, 0, 0, 0.7)',
-                  borderRadius: '15px',
-                  p: { xs: 2, sm: 2.5, md: 3 },
-                  maxWidth: '500px',
-                  mx: 'auto',
-                  boxShadow: '0 0 20px rgba(255, 215, 0, 0.3)',
-                  border: '1px solid #FFD700'
-                }}
+              {/* Stats Summary */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8, duration: 0.6 }}
               >
-                <Typography
-                  variant="h5"
+                <Box
                   sx={{
-                    color: '#FFD700',
-                    fontWeight: 'bold',
-                    mb: 1.2,
-                    textTransform: 'uppercase',
-                    fontSize: { xs: '1.0rem', sm: '1.2rem', md: '1.3rem' },
-                    letterSpacing: '1px'
-                  }}
-                >
-                  TAKIMINI DESTEKLE, ŞAMPİYON OL!
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    color: '#FFFFFF',
-                    maxWidth: '400px',
+                    textAlign: 'center',
+                    mt: 4,
+                    mb: 4,
+                    background: 'linear-gradient(145deg, rgba(76, 175, 80, 0.08), rgba(46, 125, 50, 0.05)), linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))',
+                    backdropFilter: 'blur(30px) saturate(200%)',
+                    borderRadius: '25px',
+                    p: { xs: 3, sm: 4 },
+                    maxWidth: '700px',
                     mx: 'auto',
-                    fontSize: { xs: '0.7rem', sm: '0.9rem' },
-                    opacity: 0.9
+                    border: '2px solid rgba(76, 175, 80, 0.3)',
+                    boxShadow: '0 10px 50px rgba(76, 175, 80, 0.3), inset 0 0 30px rgba(76, 175, 80, 0.1)',
+                    position: 'relative',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: -2,
+                      left: -2,
+                      right: -2,
+                      bottom: -2,
+                      background: 'linear-gradient(135deg, #4CAF50 0%, #81C784 100%)',
+                      borderRadius: '25px',
+                      zIndex: -1,
+                      opacity: 0.3,
+                      filter: 'blur(15px)'
+                    }
                   }}
                 >
-                  Her atılan şişe, takımının puan hanesine yazılır.
-                  Haydi sen de takımını destekleyerek şampiyonluğa koş!
-                </Typography>
-              </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+                    <RecyclingIcon
+                      sx={{
+                        fontSize: '3rem',
+                        color: '#4CAF50',
+                        mr: 1,
+                        filter: 'drop-shadow(0 0 20px rgba(76,175,80,0.6))',
+                        animation: 'spin 8s linear infinite',
+                        '@keyframes spin': {
+                          '0%': { transform: 'rotate(0deg)' },
+                          '100%': { transform: 'rotate(360deg)' }
+                        }
+                      }}
+                    />
+                    <Typography
+                      variant="h3"
+                      sx={{
+                        fontWeight: 900,
+                        background: 'linear-gradient(135deg, #4CAF50 0%, #81C784 50%, #A5D6A7 100%)',
+                        backgroundClip: 'text',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        filter: 'drop-shadow(0 0 30px rgba(76,175,80,0.5))'
+                      }}
+                    >
+                      {scores.gs_total + scores.fb_total + scores.ts_total}
+                    </Typography>
+                  </Box>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      color: 'rgba(255,255,255,0.9)',
+                      fontWeight: 700,
+                      mb: 1,
+                      letterSpacing: '2px'
+                    }}
+                  >
+                    TOPLAM GERİ DÖNÜŞTÜRÜLEN ŞİŞE
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'rgba(255,255,255,0.6)',
+                      fontSize: { xs: '0.85rem', sm: '0.95rem' },
+                      maxWidth: '500px',
+                      mx: 'auto',
+                      lineHeight: 1.8
+                    }}
+                  >
+                    🌍 Her şişe bir fark yaratıyor • 🌱 Takımını destekle, dünyayı kurtar • 🏆 Birlikte daha iyisini başarabiliriz!
+                  </Typography>
+                </Box>
+              </motion.div>
             </Container>
           </>
         } />
