@@ -193,11 +193,13 @@ function App() {
     const q = query(collection(db, 'scores'), orderBy('timestamp', 'desc'), limit(1));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       snapshot.docChanges().forEach((change) => {
-        if (change.type === 'added') {
+        if (change.type === 'added' || change.type === 'modified') {
           const newData = change.doc.data();
+          console.log('🔥 Firebase data received:', newData);
           setScores(newData);
-          
+
           if (newData.gs_delta === 1 || newData.fb_delta === 1 || newData.ts_delta === 1) {
+            console.log('⚽ Goal detected!', { gs_delta: newData.gs_delta, fb_delta: newData.fb_delta, ts_delta: newData.ts_delta });
             if (isSoundOn) {
               if (goalSoundRef.current) {
                 goalSoundRef.current.play();
