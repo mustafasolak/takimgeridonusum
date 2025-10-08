@@ -13,7 +13,7 @@ import {
   Alert,
   Grid
 } from '@mui/material';
-import { collection, addDoc, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
+import { collection, doc, setDoc, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
@@ -73,7 +73,8 @@ function Admin() {
         timestamp: timestamp
       };
 
-      await addDoc(collection(db, 'scores'), newData);
+      // Doküman ID'si timestamp olmalı (ESP32 ile aynı format)
+      await setDoc(doc(db, 'scores', timestamp.toString()), newData);
 
       setSnackbar({
         open: true,
